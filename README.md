@@ -4,7 +4,7 @@ Tool GUI display BLAST exam from HFME
 
 This tool is the result of work with Vania Herbillon.   
 
-## Functions
+# Functions
 
 - EEG files Reading (TRC, mat files)   
 - Attention scores extraction from the BLAST exam   
@@ -14,9 +14,13 @@ This tool is the result of work with Vania Herbillon.
 
 ![Snapshot](Figure/Snapshot.png)
 
+# Installation
+
+Download **Visu_BLAST_EEG.mlappinstall** file and install app in your matlab editor.   
+
 # UPDATE
 
-## 02/10/21   
+### 02/10/21   
 Selection of channels of interest for RTB calculation   
 Output for each time window of the RTB calculation:
 - spectrum
