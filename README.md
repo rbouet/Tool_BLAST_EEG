@@ -17,7 +17,7 @@ This tool is the result of work with Vania Herbillon.
 # UPDATE
 
 ## 02/10/21   
-Selection of channels of interest for RTB calculation
+Selection of channels of interest for RTB calculation   
 Output for each time window of the RTB calculation:
 - spectrum
 - theta
