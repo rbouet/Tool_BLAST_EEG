@@ -49,13 +49,12 @@ Menu_Fil = uimenu('Label', 'File');
            uimenu(Menu_Fil, 'Label', 'Import Neurofeedback', 'Callback', {@Import_Mat_Manu});
            uimenu(Menu_Fil, 'Label', 'Load BLAST_AIC File', 'Callback', {@Load_Blast_Obj});
            uimenu(Menu_Fil, 'Label', 'Save BLAST_AIC file', 'Callback', {@Save_Blast_Obj});
-Menu_Feat = uimenu('Label', 'Features');
-            uimenu(Menu_Rap, 'Label', 'Items Choice', 'Callback', {@Items_BLAST_Choice});
 Menu_Dis = uimenu('Label', 'Display');
            uimenu(Menu_Dis, 'Label', 'Global Resum', 'Callback', {@Plot_Bloc_AIC});
            uimenu(Menu_Dis, 'Label', 'Output Text', 'Callback', {@Write_file_output});
 Menu_Rap = uimenu('Label', 'Rapport');
            uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
+           uimenu(Menu_Rap, 'Label', 'Items Choice', 'Callback', {@Items_BLAST_Choice});
 Menu_TF = uimenu('Label', 'TF');
            uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
            

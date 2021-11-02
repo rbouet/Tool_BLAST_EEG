@@ -1120,8 +1120,8 @@ function Display_output()
 
 global GUI
 
-RTB_OY = GUI.RTB.output.RTB_OY;
-RTB_CY = GUI.RTB.output.RTB_CY;
+RTB_OY = GUI.RTB.output.RTB.OY;
+RTB_CY = GUI.RTB.output.RTB.CY;
 
 mean_cum_CY = [];
 for xi_trial = 2 : length(RTB_CY)
@@ -1135,7 +1135,7 @@ end
 % Display
 figure('Position', [100,100, 800 600],  'MenuBar', 'no', 'Color', GUI.Colors(1,:),...
        'Tag', 'RTB_time'),
-subplot(2,2,1), plot(GUI.RTB.output.RTB_OY, 'b')
+subplot(2,2,1), plot(GUI.RTB.output.RTB.OY, 'b')
 hold on, fill([1, length(RTB_OY), length(RTB_OY), 1],...
                [nanmedian(RTB_OY)+nanstd(RTB_OY), nanmedian(RTB_OY)+nanstd(RTB_OY), nanmedian(RTB_OY)-nanstd(RTB_OY), nanmedian(RTB_OY)-nanstd(RTB_OY)],...
             'y', 'FaceAlpha', 0.2) 
@@ -1203,10 +1203,10 @@ fprintf('\tbeta  : [%s %s] Hz\n ', num2str(GUI.RTB.output.beta_band(1)),...
                                    num2str(GUI.RTB.output.beta_band(2)))
 
 fprintf('\nRatio theta/beta median (deviation standard)\n')
-fprintf('\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB_OY)),...
-                                           num2str(std(GUI.RTB.output.RTB_OY)))
-fprintf('\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB_CY)),...
-                                           num2str(std(GUI.RTB.output.RTB_CY)))
+fprintf('\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.OY)),...
+                                           num2str(std(GUI.RTB.output.RTB.OY)))
+fprintf('\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.CY)),...
+                                           num2str(std(GUI.RTB.output.RTB.CY)))
                                   
 function Save_output()
 
@@ -1264,9 +1264,9 @@ fprintf(fid, '\tbeta  : [%s %s] Hz\n ', num2str(GUI.RTB.output.beta_band(1)),...
                                    num2str(GUI.RTB.output.beta_band(2)));
 
 fprintf(fid, '\nRatio theta/beta median (deviation standard)\n');
-fprintf(fid, '\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB_OY)),...
-                                           num2str(std(GUI.RTB.output.RTB_OY)));
-fprintf(fid, '\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB_CY)),...
-                                           num2str(std(GUI.RTB.output.RTB_CY)));
+fprintf(fid, '\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.OY)),...
+                                           num2str(std(GUI.RTB.output.RTB.OY)));
+fprintf(fid, '\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.CY)),...
+                                           num2str(std(GUI.RTB.output.RTB.CY)));
 
 fclose(fid);
