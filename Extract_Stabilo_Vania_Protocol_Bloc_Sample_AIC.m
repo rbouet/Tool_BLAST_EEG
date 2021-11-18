@@ -1,16 +1,19 @@
-function output =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(TRC_filename)
+function output =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(TRC_filename, blast_item_selection)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % EX : TRC_filename = '/Volumes/dycog/Epilepto/Vania/Analyse_Clinic/Stabilo/datas_raw/Cognit-AIC_027DR190318.TRC';
 %      out =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(TRC_filename);
 %
+% MAJ
+%   18/11/21    RB
+%       add BLAST items selection
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 global output
 output = {};
-
 
 
 % Extract trigger
@@ -57,7 +60,6 @@ for xi_start = 1 : length(ou_start_bloc)-1
 end, clear xi_start
 
 
-quel_bloc = 0;
 
 output.Fs = Fs;
 output.ref_time_session = trig(1,2);   % en s
@@ -69,6 +71,25 @@ output.AIC              = AIC;
 
 [output.OY, output.CY] = Extract_Eye(trig);
 
+
+% find echantilon size minium for all bloc
+Bloc_size = 10000;
+for xi_run = 1:length(ou_start_bloc)-1
+    code_timing = trig(ou_start_bloc(xi_run):ou_stop_bloc(xi_run), :);
+    code_prepare = stabilo_code4JPscore(code_timing);
+    if Bloc_size > size(code_prepare,1)
+        Bloc_size = size(code_prepare,1);
+    end
+end
+
+% Selection of Blast items (all or select)
+if strcmp(blast_item_selection, 'select')
+    items_selection = UI_specify_items(Bloc_size);
+    fprintf('We select %s items, start to %s\n', num2str(items_selection.nb_items), num2str(items_selection.start))
+end
+
+
+quel_bloc = 0;
 % WARNING il faudra changer le 2
 for xi_run = 1:length(ou_start_bloc)-1
 
@@ -77,10 +98,20 @@ for xi_run = 1:length(ou_start_bloc)-1
 
     code_timing = trig(ou_start_bloc(xi_run):ou_stop_bloc(xi_run), :);
     
+    output.bloc{quel_bloc}.version = Test_Version(code_timing);
+
     code_prepare = stabilo_code4JPscore(code_timing);
 
-    output.bloc{quel_bloc}.version = Test_Version(code_timing);
+    % Here we select which Blast item we want
+    switch blast_item_selection
+        case 'all'
+            code_prepare = code_prepare;
+        case 'select'
+            code_prepare = code_prepare([items_selection.start:items_selection.start+items_selection.nb_items-1],:);
+            
+    end
     
+
     % Infos Blast by stim
     output.bloc{quel_bloc}.sample.Blast.lat = code_prepare(:,1);    % en s
     output.bloc{quel_bloc}.sample.Blast.FB  = code_prepare(:,3);

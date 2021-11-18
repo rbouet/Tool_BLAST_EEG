@@ -45,7 +45,9 @@ GUI.Global.fig = figure('Color', GUI.Colors(1,:), 'MenuBar', 'no', 'position',[1
                   'Tag', 'Main_fig', 'CloseRequestFcn',@Main_FigureClose);
 
 Menu_Fil = uimenu('Label', 'File');
-           uimenu(Menu_Fil, 'Label', 'Import TRC', 'Callback', {@Import_TRC});
+Menu_Import = uimenu(Menu_Fil, 'Label', 'Import TRC');
+              uimenu(Menu_Import, 'Label', 'Import All', 'Callback', {@Import_TRC});
+              uimenu(Menu_Import, 'Label', 'Import Select', 'Callback', {@Import_TRC});
            uimenu(Menu_Fil, 'Label', 'Import Neurofeedback', 'Callback', {@Import_Mat_Manu});
            uimenu(Menu_Fil, 'Label', 'Load BLAST_AIC File', 'Callback', {@Load_Blast_Obj});
            uimenu(Menu_Fil, 'Label', 'Save BLAST_AIC file', 'Callback', {@Save_Blast_Obj});
@@ -53,12 +55,11 @@ Menu_Dis = uimenu('Label', 'Display');
            uimenu(Menu_Dis, 'Label', 'Global Resum', 'Callback', {@Plot_Bloc_AIC});
            uimenu(Menu_Dis, 'Label', 'Output Text', 'Callback', {@Write_file_output});
 Menu_Rap = uimenu('Label', 'Rapport');
-           uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
-           uimenu(Menu_Rap, 'Label', 'Items Choice', 'Callback', {@Items_BLAST_Choice});
+           uimenu(Menu_Rap, 'Label', 'Publish Rapport Global', 'Callback', {@Rapport});
 Menu_TF = uimenu('Label', 'TF');
            uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
            
-    
+
            
 % Select BLOC 
 uicontrol('style','text', 'string', 'Bloc',...
@@ -145,8 +146,18 @@ global GUI
 [file_name file_path file_ext] = uigetfile({'*.TRC', 'Select TRC file'},...
                                             'MultiSelect', 'off');
 
+% Selection of Blast items (all or select)
+blast_item_selection = [];
+switch evnt.Source.Text
+    case 'Import All'
+        blast_item_selection = 'all';
+    case 'Import Select'
+        blast_item_selection = 'select'; 
+end
+
+                             
 fprintf('Extract BLAST scores and AIC...\n')
-GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name));
+GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name), blast_item_selection);
 GUI.BLAST_Object.Path_TRC = [file_path file_name];
 GUI.Source = 'TRC_Blast';
 
@@ -857,8 +868,9 @@ global GUI
 %     - combien d'item à partir de la fin ? 
 % - on ira piocher dans la définition des valurs secondaire pour afficher les tracés et construire le rapport
 
+% Launch UIfigure to specify items
 
-
+quel_item = UI_specify_items()
 
 function Launch_RTB(hObj,evnt)
         
