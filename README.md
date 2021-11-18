@@ -27,3 +27,5 @@ Output for each time window of the RTB calculation:
 - theta
 - beta
 - RTB
+### 18/11/21   
+Selection of BLAST items to display.
