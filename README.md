@@ -6,7 +6,7 @@ This tool is the result of work with Vania Herbillon.
 
 # Functions
 
-- EEG files Reading (TRC, mat files)   
+- EEG files Reading (TRC, Vamp, mat files)   
 - Attention scores extraction from the BLAST exam   
 - Automatic report generation for clinical use (BLAST, AIC)   
 - Fine display of BLAST design, AIC and attentionnal metrics (RT, feedback, focus, instability)   
