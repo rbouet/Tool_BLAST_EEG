@@ -27,6 +27,11 @@ function GUI_BLAST_Explore()
 %     16/10/20    Add theta/beta ratio
 %     RB
 %
+%   - 25/01/22   
+%               - import neurofeedback Vamp file
+%               - create function to create cfg structure for FT structure
+%     RB
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Construction de l'interface 
@@ -45,21 +50,23 @@ GUI.Global.fig = figure('Color', GUI.Colors(1,:), 'MenuBar', 'no', 'position',[1
                   'Tag', 'Main_fig', 'CloseRequestFcn',@Main_FigureClose);
 
 Menu_Fil = uimenu('Label', 'File');
-Menu_Import = uimenu(Menu_Fil, 'Label', 'Import TRC');
-              uimenu(Menu_Import, 'Label', 'Import All', 'Callback', {@Import_TRC});
-              uimenu(Menu_Import, 'Label', 'Import Select', 'Callback', {@Import_TRC});
-           uimenu(Menu_Fil, 'Label', 'Import Neurofeedback', 'Callback', {@Import_Mat_Manu});
+           Menu_Clinic        = uimenu(Menu_Fil, 'Label', 'Import Clinic');
+                                uimenu(Menu_Clinic, 'Label', 'Import TRC', 'Callback', {@Import_TRC});           
+           Menu_NeuroFeedback = uimenu(Menu_Fil, 'Label', 'Import NeuroFeedback');
+                                uimenu(Menu_NeuroFeedback, 'Label', 'Import matlab', 'Callback', {@Import_Mat_Manu});
+                                uimenu(Menu_NeuroFeedback, 'Label', 'Import Vamp', 'Callback', {@Import_Vamp});
            uimenu(Menu_Fil, 'Label', 'Load BLAST_AIC File', 'Callback', {@Load_Blast_Obj});
            uimenu(Menu_Fil, 'Label', 'Save BLAST_AIC file', 'Callback', {@Save_Blast_Obj});
 Menu_Dis = uimenu('Label', 'Display');
            uimenu(Menu_Dis, 'Label', 'Global Resum', 'Callback', {@Plot_Bloc_AIC});
            uimenu(Menu_Dis, 'Label', 'Output Text', 'Callback', {@Write_file_output});
 Menu_Rap = uimenu('Label', 'Rapport');
-           uimenu(Menu_Rap, 'Label', 'Publish Rapport Global', 'Callback', {@Rapport});
+           uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
+           uimenu(Menu_Rap, 'Label', 'Items Choice', 'Callback', {@Items_BLAST_Choice});
 Menu_TF = uimenu('Label', 'TF');
            uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
            
-
+    
            
 % Select BLOC 
 uicontrol('style','text', 'string', 'Bloc',...
@@ -146,18 +153,8 @@ global GUI
 [file_name file_path file_ext] = uigetfile({'*.TRC', 'Select TRC file'},...
                                             'MultiSelect', 'off');
 
-% Selection of Blast items (all or select)
-blast_item_selection = [];
-switch evnt.Source.Text
-    case 'Import All'
-        blast_item_selection = 'all';
-    case 'Import Select'
-        blast_item_selection = 'select'; 
-end
-
-                             
 fprintf('Extract BLAST scores and AIC...\n')
-GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name), blast_item_selection);
+GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name));
 GUI.BLAST_Object.Path_TRC = [file_path file_name];
 GUI.Source = 'TRC_Blast';
 
@@ -168,6 +165,32 @@ ob.cb = findobj('Tag', 'choix_bloc_plot');
 ob.cb.String = strsplit(num2str([1:size(GUI.BLAST_Object.bloc,2)]));
 
 Plot_info_first()
+
+function Import_Vamp(hObj,evnt)
+
+global GUI
+[file_name file_path file_ext] = uigetfile({'*.ahdr', 'Select V-amp file'},...
+                                            'MultiSelect', 'off');
+                                        
+% There are 3 reccords (blast, oe and ce)
+% here we specify the gneric filename
+file_name = file_name(1:strfind(file_name, '_')-1);
+
+
+fprintf('There is only 1  BLAST''s bloc and NO AIC.\n')
+% en construction, il manque les code correspondant au blast
+GUI.BLAST_Object =  Extract_Stabilo_Neurofeedback_Protocol_Vamp_(fullfile(file_path, file_name));
+GUI.BLAST_Object.Path_TRC = fullfile(file_path, file_name);
+GUI.Source = 'Vamp_Neurofeedback';
+
+% ajust liste des blocs
+ob.cb = findobj('Tag', 'choix_bloc_plot');
+ob.cb.String = '1';
+
+Plot_info_first()
+
+
+
 
 function Import_Mat_Manu(hObj,evnt)
     
@@ -868,9 +891,8 @@ global GUI
 %     - combien d'item à partir de la fin ? 
 % - on ira piocher dans la définition des valurs secondaire pour afficher les tracés et construire le rapport
 
-% Launch UIfigure to specify items
 
-quel_item = UI_specify_items()
+
 
 function Launch_RTB(hObj,evnt)
         
@@ -897,6 +919,21 @@ switch GUI.Source
         % There is a difference between control ChannelLabel and TDAH ChannelLabel
         GUI.RTB.channel_all = cellstr(HDR.ChannelLabel);
         clear file_path file_name file_ext HDR DATA
+        
+    case 'Vamp_Neurofeedback'
+
+        [Fpath,Fname,~] = fileparts([GUI.BLAST_Object.Path_TRC, '_0001']);        
+
+        % only .vhdr are reading by FT
+        copyfile(fullfile(Fpath, [Fname,'.ahdr']),...
+                 fullfile(Fpath, [Fname,'.vhdr']));
+             
+        HDR = ft_read_header([GUI.BLAST_Object.Path_TRC, '_0001.vhdr']);
+        GUI.RTB.channel_all  = HDR.label;
+
+        clear HDR
+        delete(fullfile(Fpath, [Fname,'.vhdr']))
+        clear Fpath Fname
 
 end
 

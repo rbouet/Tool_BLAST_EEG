@@ -1168,17 +1168,22 @@ end
 
 figure('Position', [100,100, 1000 1000], 'Color', GUI.Colors(1,:),...
        'Tag', 'data_correct')
-
-   subplot(2,1,1)
+subplot(2,1,1)
 hold on
 title(['Close Eyes - channels ' strjoin(data_front_CY.label) ' + ' strjoin(data_eog_CY.label)],...
       'FontSize', 17, 'Color', [.8 .8 .8])
-xlim([0 data_eog_CY.time{1}(end)])
+if ~isempty(data_eog_CY.trial{1})
+    plot(data_eog_CY.time{1}, data_eog_CY.trial{1} - 300, 'color', [.5 .5 .5])
+end
 
+xlim([0 data_eog_CY.time{1}(end)])
 subplot(2,1,2)
 hold on
 title(['Open Eyes - channels ' strjoin(data_front_OY.label) ' + ' strjoin(data_eog_OY.label)],...
       'FontSize', 17, 'Color', [.8 .8 .8])
+if ~isempty(data_eog_CY.trial{1})
+    plot(data_eog_OY.time{1}, data_eog_CY.trial{1} - 300, 'color', [.5 .5 .5])
+end
 xlim([0 data_eog_OY.time{1}(end)])
 
 % plot raw datas
@@ -1194,20 +1199,9 @@ for xi_chan = 1 : size(data_front_CY.trial{1},1)
 end
 
 subplot(2,1,1)
-if ~isempty(data_eog_CY.trial{1})
-    plot(data_eog_CY.time{1}, data_eog_CY.trial{1} - 300, 'color', [.5 .5 .5])
-    ylim([-300-(abs(nanmin(data_eog_CY.trial{1}(:)))) 300*xi_chan])
-else
-    ylim([-300 300*xi_chan])
-
-end
+ylim([-300 300*xi_chan])
 subplot(2,1,2)
-if ~isempty(data_eog_OY.trial{1})
-    plot(data_eog_OY.time{1}, data_eog_OY.trial{1} - 300, 'color', [.5 .5 .5])
-    ylim([-300-(abs(nanmin(data_eog_OY.trial{1}(:)))) 300*xi_chan])
-else
-    ylim([-300 300*xi_chan])
-end
+ylim([-300 300*xi_chan])
 clear xi_chan
 
 for xi_trial = 1 : numel(data_front_CY_clean.trial)
