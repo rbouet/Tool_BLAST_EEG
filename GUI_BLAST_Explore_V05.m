@@ -27,6 +27,9 @@ function GUI_BLAST_Explore()
 %     16/10/20    Add theta/beta ratio
 %     RB
 %
+%     18/11/21    BLAST's items selection
+%     RB
+%
 %   - 25/01/22   
 %               - import neurofeedback Vamp file
 %               - create function to create cfg structure for FT structure
@@ -50,8 +53,10 @@ GUI.Global.fig = figure('Color', GUI.Colors(1,:), 'MenuBar', 'no', 'position',[1
                   'Tag', 'Main_fig', 'CloseRequestFcn',@Main_FigureClose);
 
 Menu_Fil = uimenu('Label', 'File');
-           Menu_Clinic        = uimenu(Menu_Fil, 'Label', 'Import Clinic');
-                                uimenu(Menu_Clinic, 'Label', 'Import TRC', 'Callback', {@Import_TRC});           
+           Menu_Clinic = uimenu(Menu_Fil, 'Label', 'Import Clinic');
+                         Menu_Clinic_TRC = uimenu(Menu_Clinic, 'Label', 'Import TRC', 'Callback', {@Import_TRC});
+%                                            uimenu(Menu_Clinic_TRC, 'Label', 'Import All', 'Callback', {@Import_TRC});
+%                                            uimenu(Menu_Clinic_TRC, 'Label', 'Import Select', 'Callback', {@Import_TRC});
            Menu_NeuroFeedback = uimenu(Menu_Fil, 'Label', 'Import NeuroFeedback');
                                 uimenu(Menu_NeuroFeedback, 'Label', 'Import matlab', 'Callback', {@Import_Mat_Manu});
                                 uimenu(Menu_NeuroFeedback, 'Label', 'Import Vamp', 'Callback', {@Import_Vamp});
@@ -62,7 +67,6 @@ Menu_Dis = uimenu('Label', 'Display');
            uimenu(Menu_Dis, 'Label', 'Output Text', 'Callback', {@Write_file_output});
 Menu_Rap = uimenu('Label', 'Rapport');
            uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
-           uimenu(Menu_Rap, 'Label', 'Items Choice', 'Callback', {@Items_BLAST_Choice});
 Menu_TF = uimenu('Label', 'TF');
            uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
            
@@ -153,6 +157,16 @@ global GUI
 [file_name file_path file_ext] = uigetfile({'*.TRC', 'Select TRC file'},...
                                             'MultiSelect', 'off');
 
+% Selection of Blast items (all or select)
+% blast_item_selection = [];
+% switch evnt.Source.Text
+%     case 'Import All'
+%         blast_item_selection = 'all';
+%     case 'Import Select'
+%         blast_item_selection = 'select'; 
+% end
+
+                             
 fprintf('Extract BLAST scores and AIC...\n')
 GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name));
 GUI.BLAST_Object.Path_TRC = [file_path file_name];
@@ -188,9 +202,6 @@ ob.cb = findobj('Tag', 'choix_bloc_plot');
 ob.cb.String = '1';
 
 Plot_info_first()
-
-
-
 
 function Import_Mat_Manu(hObj,evnt)
     
@@ -890,6 +901,7 @@ global GUI
 %     - combien d'item à partir du début ?
 %     - combien d'item à partir de la fin ? 
 % - on ira piocher dans la définition des valurs secondaire pour afficher les tracés et construire le rapport
+
 
 
 

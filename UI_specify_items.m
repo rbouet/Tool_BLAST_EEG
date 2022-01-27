@@ -14,16 +14,21 @@ GUI.tmp.size_max = Bloc_size;
 
 
 fig = uifigure('Name', 'BLAST Items Window of interest',...
-               'Position',[380 678 398 160]);
+               'Position',[380 678 398 160],...
+               'Color', GUI.Colors(1,:));
 
 bg = uibuttongroup(fig,'Position',[37 53 123 85],...
-                   'SelectionChangedFcn',@bselection);
+                   'SelectionChangedFcn',@bselection,...
+               'BackgroundColor', GUI.Colors(1,:));
 bt_start_first   = uitogglebutton(bg,'Position',[10 50 100 22],...
-                                  'text', 'First', 'Tag', 'start_first');
+                                  'text', 'First', 'Tag', 'start_first',...
+                                  'BackgroundColor', GUI.Colors(4,:));
 bt_start_last    = uitogglebutton(bg,'Position',[10 28 100 22],...
-                                  'text', 'Last', 'Tag', 'start_last');
+                                  'text', 'Last', 'Tag', 'start_last',...
+                                  'BackgroundColor', GUI.Colors(4,:));
 bt_start_specify = uitogglebutton(bg,'Position',[10 6 100 22],...
-                                  'text', 'Specify', 'Tag', 'start_specify');
+                                  'text', 'Specify', 'Tag', 'start_specify',...
+                                  'BackgroundColor', GUI.Colors(4,:));
 
                               
 uilabel(fig,'Text','Nb Items','HorizontalAlignment','left', 'Position', [200 90 50 20]);
@@ -33,10 +38,11 @@ bt_define_nb_item = uieditfield(fig, 'Position',[255 90 30 20],...
 
                            uilabel(fig,'Text','Onset','HorizontalAlignment','left', 'Position', [200 53 60 20]);
 bt_define_start = uieditfield(fig, 'Position',[255 53 30 20],...
-                             'Value', num2str(GUI.tmp.start), 'Enable', 'off');
+                             'Value', num2str(GUI.tmp.start), 'Enable', 'off',...
+                             'ValueChangedFcn', @Change_start);
                          
 bt_exit = uiswitch(fig, 'toggle', 'Position',[320 60 30 80],...
-                   'Items', {'Wait', 'Rapport'},...
+                   'Items', {'Wait', 'Extract'},...
                    'ValueChangedFcn',@switchMoved);
 
 
@@ -67,6 +73,14 @@ GUI.tmp.start = str2num(bt_define_start.Value);
 GUI.tmp.nb_items = str2num(bt_define_nb_item.Value);
 
 function Change_nb_item(source, event)
+
+global bt_define_start bt_define_nb_item
+global GUI
+
+GUI.tmp.start = str2num(bt_define_start.Value);
+GUI.tmp.nb_items = str2num(bt_define_nb_item.Value);
+
+function Change_start(source, event)
 
 global bt_define_start bt_define_nb_item
 global GUI
