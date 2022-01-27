@@ -29,3 +29,5 @@ Output for each time window of the RTB calculation:
 - RTB
 ### 18/11/21   
 Selection of BLAST items to display.
+### 26/01/22   
+Import Vamp file (exept Blast events).
