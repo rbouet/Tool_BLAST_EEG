@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="2646446725" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="885325030" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
     <param.appname>Visu_BLAST_EEG</param.appname>
     <param.authnamewatermark>RB</param.authnamewatermark>
     <param.email />
@@ -15,7 +15,7 @@
     <param.products.version />
     <param.platforms />
     <param.output>${PROJECT_ROOT}</param.output>
-    <param.guid>86f770a0-8592-465e-92c1-6143770710d9</param.guid>
+    <param.guid>b8485c97-b472-46f9-baf2-208e9621fd6c</param.guid>
     <unset>
       <param.email />
       <param.icon />
@@ -964,6 +964,7 @@
       <file>${PROJECT_ROOT}/Extract_Stabilo_Neurofeedback_Protocol_Vamp_.m</file>
       <file>${PROJECT_ROOT}/Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC.m</file>
       <file>${PROJECT_ROOT}/Theta_Beta_Ratio_V04.m</file>
+      <file>${PROJECT_ROOT}/UI_specify_items.m</file>
       <file>${PROJECT_ROOT}/ahdr2mat.m</file>
       <file>${PROJECT_ROOT}/stabilo_scores_Run_Sampl_AIC.m</file>
     </fileset.depfun>
