@@ -31,3 +31,7 @@ Output for each time window of the RTB calculation:
 Selection of BLAST items to display.
 ### 26/01/22   
 Import Vamp file (exept Blast events).
+### 28/02/22   
+Import Vamp Blast events.
+Fixe the Global Resume bug without eyes (opened, closed) signal.
+
