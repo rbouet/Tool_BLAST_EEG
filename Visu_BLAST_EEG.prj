@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="885325030" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="113580273" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
     <param.appname>Visu_BLAST_EEG</param.appname>
     <param.authnamewatermark>RB</param.authnamewatermark>
     <param.email />
@@ -15,7 +15,7 @@
     <param.products.version />
     <param.platforms />
     <param.output>${PROJECT_ROOT}</param.output>
-    <param.guid>b8485c97-b472-46f9-baf2-208e9621fd6c</param.guid>
+    <param.guid>6fa8b902-89f0-4029-b9d0-da9245a67f0b</param.guid>
     <unset>
       <param.email />
       <param.icon />
@@ -772,6 +772,7 @@
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/Read_TRC/TRC_Class/@trigger/trigger.m</file>
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/Stabilo/stabilo_code4JPscore.m</file>
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/Stabilo/stabilo_read_micromed.m</file>
+      <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/Stabilo/stabilo_read_presentation_log.m</file>
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/spm12/spm12/@file_array/Contents.m</file>
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/spm12/spm12/@file_array/cat.m</file>
       <file>/Users/romain.bouet/Datas/Sauvegarde/Programmes_Matlab/spm12/spm12/@file_array/ctranspose.m</file>

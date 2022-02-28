@@ -26,7 +26,6 @@ EVT_vamp(:,1) = (EVT_vamp(:,1) / HDR_vamp.Fs)*1000;
 fprintf("Import log Presentation file:\n\t\t%s\n", fullfile(filepath, [filename, '_S01-mla_mara100.log']))
 % Timing in ms
 trig = stabilo_read_presentation_log(fullfile(filepath, [filename, '_S01-mla_mara100.log']));
-trig(:,2) = trig(:,2)/1000;
 
 
 % Find timing of the 1st BLAST event in Vamp file
@@ -54,15 +53,16 @@ output.AIC.label = {};
 output.AIC.code_label = [];
 output.AIC.sample = [];
 output.code_label = [];
-output.OY.seconde = [];
+output.OY.second = [];
 output.OY.sample = [];
-output.CY.seconde = [];
+output.CY.second = [];
 output.CY.sample = [];
 
 
 % dans le protocol Neurofeedback il n'y a qu'un seul bloc
 quel_bloc = 1;
 code_prepare = stabilo_code4JPscore(trig);
+code_prepare(:,1) = code_prepare(:,1)/1000;
 
 % Selection of Blast items (all or select)
 items_selection = UI_specify_items(size(code_prepare,1));
@@ -89,7 +89,7 @@ code_timing = trig;
     stop_bloc  = max(code_timing(max([code_timing(:,1) == 71, code_timing(:,1) == 72, code_timing(:,1) == 73], [], 2), 2));
     output.bloc{quel_bloc}.duration   = stop_bloc - start_bloc;   % de la première stim à la dernière réponse
     clear start_bloc stop_bloc
-    output.bloc{quel_bloc}.start_stop = [min(trig(:,2)) max(trig(:,2))]; 
+    output.bloc{quel_bloc}.start_stop = [trig(1,2) trig(end,2)]; 
         
 output.bloc{quel_bloc}.global.AIC.aic_general_nb = 0;
 output.bloc{quel_bloc}.global.AIC.aic_general_pct = 0;

@@ -73,8 +73,12 @@ GUI.fig_AIC_Pos.Bloc.Parent.YLim = [-0.9 1.2];
 
 hold on
 % Plot open eyes/ close eyes
-GUI.fig_AIC_Pos.OY = fill([GUI.BLAST_Object.OY.seconde GUI.BLAST_Object.OY.seconde(2:-1:1)], ampl_bloc(2:5), '-', 'FaceColor', [0.5 0.5 0.5]);
-GUI.fig_AIC_Pos.CY = fill([GUI.BLAST_Object.CY.seconde GUI.BLAST_Object.CY.seconde(2:-1:1)], ampl_bloc(2:5), '-', 'FaceColor', [0.5 0.5 0.5]);
+if ~isempty(GUI.BLAST_Object.OY.seconde)
+    GUI.fig_AIC_Pos.OY = fill([GUI.BLAST_Object.OY.seconde GUI.BLAST_Object.OY.seconde(2:-1:1)], ampl_bloc(2:5), '-', 'FaceColor', [0.5 0.5 0.5]);
+end
+if ~isempty(GUI.BLAST_Object.CY.seconde)
+    GUI.fig_AIC_Pos.CY = fill([GUI.BLAST_Object.CY.seconde GUI.BLAST_Object.CY.seconde(2:-1:1)], ampl_bloc(2:5), '-', 'FaceColor', [0.5 0.5 0.5]);
+end
 
 % Plot AIC
 time_aic  = GUI.BLAST_Object.AIC.sample(1:2:end);
@@ -98,11 +102,13 @@ GUI.fig_AIC_Pos.AIC = [plot(time_aic_gen(1:2:end), ampl_aic_gen(1:2:end), 'ro'),
                        plot(time_sei_gen(1:2:end), ampl_sei_gen(1:2:end), 'bo'),...
                        plot(time_sei_foc(1:2:end), ampl_sei_foc(1:2:end), 'b*')];
                    
-text(GUI.BLAST_Object.OY.seconde(1), -0.3, '* AIC General', 'FontSize',14, 'Color', 'r')
-text(GUI.BLAST_Object.OY.seconde(1), -0.4, 'o AIC Focal', 'FontSize',14, 'Color', 'r')
-text(GUI.BLAST_Object.OY.seconde(1), -0.5, '* Other', 'FontSize',14, 'Color', [0 1 0])
-text(GUI.BLAST_Object.OY.seconde(1), -0.6, 'o Seizure General', 'FontSize',14, 'Color', 'b')
-text(GUI.BLAST_Object.OY.seconde(1), -0.7, '* Seizure Focal', 'FontSize',14, 'Color', 'b')
+t_ref = GUI.fig_AIC_Pos.Bloc.XData(1);
+text(t_ref-(t_ref*0.6), -0.3, '* AIC General', 'FontSize',14, 'Color', 'r')
+text(t_ref-(t_ref*0.6), -0.4, 'o AIC Focal', 'FontSize',14, 'Color', 'r')
+text(t_ref-(t_ref*0.6), -0.5, '* Other', 'FontSize',14, 'Color', [0 1 0])
+text(t_ref-(t_ref*0.6), -0.6, 'o Seizure General', 'FontSize',14, 'Color', 'b')
+text(t_ref-(t_ref*0.6), -0.7, '* Seizure Focal', 'FontSize',14, 'Color', 'b')
+clear t_ref
 
 clear time_aic time_aic_foc time_aic_gen time_other time_sei_foc time_sei_gen 
 clear ampl_aic ampl_aic_foc ampl_aic_gen ampl_other ampl_sei_foc ampl_sei_gen
@@ -318,6 +324,9 @@ fprintf('\n\n\n\n\n\n\n\n\n');
 % *BLOC 2*
 
 xi_bloc = 2;
+if xi_bloc > length(GUI.BLAST_Object.bloc) 
+    return
+end
 
 str = ['Bloc ', num2str(xi_bloc)];
 disp(['<html><p>',str,'</p></html>'])
@@ -496,6 +505,9 @@ fprintf('\n\n\n\n\n\n\n\n\n');
 % *BLOC 3*
 
 xi_bloc = 3;
+if xi_bloc > length(GUI.BLAST_Object.bloc) 
+    return
+end
 
 str = ['Bloc ', num2str(xi_bloc)];
 disp(['<html><p>',str,'</p></html>'])
@@ -676,6 +688,9 @@ fprintf('\n\n\n\n\n\n\n\n\n');
 % *BLOC 4*
 
 xi_bloc = 4;
+if xi_bloc > length(GUI.BLAST_Object.bloc) 
+    return
+end
 
 str = ['Bloc ', num2str(xi_bloc)];
 disp(['<html><p>',str,'</p></html>'])
@@ -856,6 +871,9 @@ fprintf('\n\n\n\n\n\n\n\n\n');
 % *BLOC 5*
 
 xi_bloc = 5;
+if xi_bloc > length(GUI.BLAST_Object.bloc) 
+    return
+end
 
 str = ['Bloc ', num2str(xi_bloc)];
 disp(['<html><p>',str,'</p></html>'])

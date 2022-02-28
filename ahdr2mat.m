@@ -11,6 +11,8 @@ function [HDR, EVT, DATA] = ahdr2mat(ahdrfilename)
 %
 % Add FEALDTRIP path
 %
+% Author : MM
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % addpath(genpath('C:\_MANU\_U821\_DirMatlab\fieldtrip'))
