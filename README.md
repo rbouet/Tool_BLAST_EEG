@@ -34,4 +34,7 @@ Import Vamp file (exept Blast events).
 ### 28/02/22   
 Import Vamp Blast events.   
 Fixe the Global Resume bug without eyes (opened, closed) signal.
-
+### 22/03/22   
+Features selection of RTB windows.    
+Add some EOG labels.    
+Selection of BLAST blocs    
