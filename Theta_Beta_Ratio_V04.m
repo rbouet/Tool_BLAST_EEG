@@ -35,9 +35,9 @@ bt_push = gco;
 % remove the 5 first secondes
 GUI.RTB.param_signal.remove = 5;
 % windows lenght, secondes
-GUI.RTB.param_signal.win_w = 8;
+GUI.RTB.param_signal.win_w = str2num(get(GUI.RTB.param_artefact.RTB_win_lengt, 'String'));
 % window overlap
-GUI.RTB.param_signal.win_ov = 0.875;
+GUI.RTB.param_signal.win_ov = str2num(get(GUI.RTB.param_artefact.RTB_win_overlay, 'String'));
 % correlation to detecte ICA components
 corr_eog_th    = .4;
 
@@ -53,7 +53,7 @@ meth_RTB      = GUI.RTB.param_band.String{GUI.RTB.param_band.Value};
 % channels of interest
 chan_front.label = get(GUI.RTB.param_artefact.chan_front, 'String');
 chan_occi.label  = {'P3', 'P4', 'Pz', 'O1', 'O2'};
-chan_eog.label   = {'EO+'};
+chan_eog.label   = {'EO+', 'EOGD', 'EOGG'};
 %chan_ica.label   = GUI.RTB.channel_all;
 chan_ica.label   = {'Fp1', 'Fp2', 'FC1', 'FC2', 'F7', 'F3', 'F4', 'F8', 'Fz', 'C3', 'Cz', 'C4', 'P3', 'P4', 'Pz', 'O1', 'O2', 'EO+'};
        
@@ -649,8 +649,8 @@ remove = GUI.RTB.param_signal.remove;
 win_w  = GUI.RTB.param_signal.win_w;
 win_ov = GUI.RTB.param_signal.win_ov;
 
-start_win = [win(1)+(remove*Fs) : (win_w*Fs)*(1-win_ov) : win(2)-(win_w*Fs)];
-stop_win = start_win + win_w*Fs;
+start_win = [win(1)+round(remove*Fs) : round((win_w*Fs)*(1-win_ov)) : win(2)-round(win_w*Fs)];
+stop_win = start_win + round(win_w*Fs);
 trl = [start_win',...
        stop_win',...
        zeros(length(start_win),1)];
@@ -664,7 +664,7 @@ win = [data.time{1}(1) data.time{1}(end)];
 win_w  = GUI.RTB.param_signal.win_w;
 win_ov = GUI.RTB.param_signal.win_ov;
     
-start_win = [win(1) : win_w*(1-win_ov) : win(2)-win_w];
+start_win = [win(1) : round(win_w*(1-win_ov)) : round(win(2)-win_w)];
 stop_win = start_win + win_w;
 trl = [start_win',...
        stop_win',...
@@ -752,6 +752,7 @@ ff    = nan(data.fsample, numel(data.trial));
 theta = nan(1, numel(data.trial));
 beta  = nan(1, numel(data.trial));
 RTB   = nan(1, numel(data.trial));
+
 for xi_trial = 1 : numel(data.trial)
     
     ff(:, xi_trial) = abs(fft(data.trial{xi_trial}, data.fsample));

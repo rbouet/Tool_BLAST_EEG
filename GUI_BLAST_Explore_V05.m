@@ -71,7 +71,9 @@ Menu_Dis = uimenu('Label', 'Display');
 Menu_Rap = uimenu('Label', 'Rapport');
            uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
 Menu_TF = uimenu('Label', 'TF');
-           uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
+          uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
+Menu_Modify = uimenu('Label', 'Modify');
+              uimenu(Menu_Modify, 'Label', 'Blocs Selection', 'Callback', {@Change_bloc_display});
            
     
            
@@ -159,17 +161,7 @@ function Import_TRC(hObj,evnt)
 global GUI
 [file_name file_path file_ext] = uigetfile({'*.TRC', 'Select TRC file'},...
                                             'MultiSelect', 'off');
-
-% Selection of Blast items (all or select)
-% blast_item_selection = [];
-% switch evnt.Source.Text
-%     case 'Import All'
-%         blast_item_selection = 'all';
-%     case 'Import Select'
-%         blast_item_selection = 'select'; 
-% end
-
-                             
+                           
 fprintf('Extract BLAST scores and AIC...\n')
 GUI.BLAST_Object =  Extract_Stabilo_Vania_Protocol_Bloc_Sample_AIC(fullfile(file_path, file_name));
 GUI.BLAST_Object.Path_TRC = [file_path file_name];
@@ -177,8 +169,6 @@ GUI.Source = 'TRC_Blast';
 
 % ajust liste des blocs
 ob.cb = findobj('Tag', 'choix_bloc_plot');
-
-% ob.cb.String = num2strcell([1:size(GUI.BLAST_Object.bloc,2)]);
 ob.cb.String = strsplit(num2str([1:size(GUI.BLAST_Object.bloc,2)]));
 
 Plot_info_first()
@@ -853,9 +843,11 @@ global GUI
 
 [path_rapport, name_rapport, ~] = fileparts(GUI.BLAST_Object.Path_TRC);
 
-[filename, pathname] = uiputfile(fullfile(path_rapport, [name_rapport, '_Rapport.pdf']), 'Save BLAST Rapport as');
+len_events = length(GUI.BLAST_Object.bloc{1}.sample.Blast.lat);
 
+[filename, pathname] = uiputfile(fullfile(path_rapport, [name_rapport, '_Rapport_', num2str(len_events) 'events.pdf']), 'Save BLAST Rapport as');
 
+clear len_events
 
 
 GUI.Global.fig.Children(1).Visible = 'off';
@@ -890,30 +882,6 @@ GUI.Global.fig.Children(7).Visible = 'on';
 GUI.Global.fig.Children(8).Visible = 'on';
 GUI.Global.fig.Children(9).Visible = 'on';
 GUI.Global.fig.Children(10).Visible = 'on';
-
-function Items_BLAST_Choice(hObj,evnt)
-
-%%%%%%%%%%%%%%%%%%
-% Cette fonction va permettre de selectionner precisemment 
-% quels items du BLAST on desire afficher et inclure dans le rapport 
-% et dans le calcul des scores du BLAST
-%%%%%%%%%%%%%%%%%%
-
-global GUI
-
-% Algo
-% - il faut que le début et la fin (primitive) de chaque bloc soit définit dans le GUI
-% - il faut un champs dans le GUI qui va contenir les nouvelles valeurs de début et de fin qui seront utilisés plus tard
-%     (par défaut ces valeurs sont les même que valeurs primitives)
-% - faire une interface qui va modifier les valeurs secondaires avec les choix:
-%     - quel item de début et de fin précis ex :  4 à 26
-%     - combien d'item à partir du début ?
-%     - combien d'item à partir de la fin ? 
-% - on ira piocher dans la définition des valurs secondaire pour afficher les tracés et construire le rapport
-
-
-
-
 
 function Launch_RTB(hObj,evnt)
         
@@ -969,7 +937,7 @@ uicontrol('Style', 'text', 'String', {'Select artefact correction'},...
 GUI.RTB.param_artefact.methodo = uicontrol('Style', 'popupmenu', 'String', {'Threshold (microVolt)', 'Threshold (SD)', 'Threshold (%)', 'Manual', 'ICA', 'ICA + Thesh'},...
     'Position', [10 360 200 99], 'FontSize', 15, 'Tag', 'param_band_meth');
 
-
+% Selection channels to compute RTB
 uicontrol('Style', 'text', 'String', {'Channels'},...
     'Position', [300 465 180 20], 'HorizontalAlignment', 'center',...
     'FontSize', 15, 'BackgroundColor', GUI.Colors(1,:));
@@ -988,7 +956,23 @@ GUI.RTB.tmp_chx_chan = uicontrol('Style', 'listbox', 'String', GUI.RTB.channel_a
     'callback', @(~,~)set(GUI.RTB.param_artefact.chan_front,'String', Select_cell(GUI.RTB.channel_all)));
 
 
+% RTB slide windows features
+uicontrol('Style', 'text', 'String', {'RTB Window'},...
+    'Position', [300 320 110 20], 'HorizontalAlignment', 'left',...
+    'FontSize', 15, 'BackgroundColor', GUI.Colors(1,:));
+GUI.RTB.param_artefact.RTB_win_lengt = uicontrol('Style', 'edit', 'String', '8',...
+    'Position', [300 290 50 20], 'FontSize', 15, 'Tag', 'param_RTB_win_size');
+uicontrol('Style', 'text', 'String', {'second'},...
+    'Position', [355 290 60 20], 'HorizontalAlignment', 'left',...
+    'FontSize', 12, 'BackgroundColor', GUI.Colors(1,:));
+GUI.RTB.param_artefact.RTB_win_overlay = uicontrol('Style', 'edit', 'String', '0.875',...
+    'Position', [300 260 50 20], 'FontSize', 15, 'Tag', 'param_RTB_win_overlay');
+uicontrol('Style', 'text', 'String', {'% Overlay'},...
+    'Position', [355 260 60 20], 'HorizontalAlignment', 'left',...
+    'FontSize', 12, 'BackgroundColor', GUI.Colors(1,:));
 
+
+% Artefact detection features
 uicontrol('Style', 'text', 'String', {'Theshold'},...
     'Position', [10 400 200 20], 'FontSize', 15,...
     'HorizontalAlignment', 'left', 'BackgroundColor', GUI.Colors(1,:));
@@ -1069,6 +1053,22 @@ uicontrol('Style', 'pushbutton', 'String', 'X',...
     'Position', [370 10 30 30], 'FontSize', 20,...
     'BackgroundColor', [1 0 0], 'Tag', 'quite_RTB',...
     'callback', 'delete(findobj(''Tag'', ''artefact_param''))');
+
+function Change_bloc_display(hObj,evnt)
+
+global GUI
+
+bloc_selected = UI_specify_blocs(length(GUI.BLAST_Object.bloc));
+
+% ajust liste des blocs
+ob.cb = findobj('Tag', 'choix_bloc_plot');
+ob.cb.String = strsplit(num2str([1:length(bloc_selected)]));
+
+GUI.BLAST_Object.bloc = GUI.BLAST_Object.bloc(str2num(str2mat(bloc_selected)));
+
+
+Plot_info_refresh()
+
 
 function output = Select_cell(input_cell)
 

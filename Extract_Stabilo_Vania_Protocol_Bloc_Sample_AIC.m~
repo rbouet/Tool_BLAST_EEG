@@ -106,11 +106,8 @@ for xi_run = 1:length(ou_start_bloc)-1
     code_prepare = stabilo_code4JPscore(code_timing);
 
     % Here we select which Blast item we want
-    if items_selection.start+items_selection.nb_items-1 > size(code_prepare,1)
-        code_prepare = code_prepare([items_selection.start:end],:);
-    else
-        code_prepare = code_prepare([items_selection.start:items_selection.start+items_selection.nb_items-1],:);
-    end
+    
+    code_prepare = code_prepare([items_selection.start:items_selection.start+items_selection.nb_items-1],:);
     
     % Infos Blast by stim
     output.bloc{quel_bloc}.sample.Blast.lat = code_prepare(:,1);    % en s
@@ -142,7 +139,7 @@ for xi_run = 1:length(ou_start_bloc)-1
                                                          
                                                          
      clear code_timing code_prepare
-     
+     clear quel_bloc
      
 end, clear xi_run
 
