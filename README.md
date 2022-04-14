@@ -38,3 +38,5 @@ Fixe the Global Resume bug without eyes (opened, closed) signal.
 Features selection of RTB windows.    
 Add some EOG labels.    
 Selection of BLAST blocs    
+### 14/04/22    
+Merge several BLAST-AIC features within one *.txt file   
