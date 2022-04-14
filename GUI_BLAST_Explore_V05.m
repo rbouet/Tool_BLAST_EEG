@@ -40,6 +40,10 @@ function GUI_BLAST_Explore()
 %               - Global resum without eyes
 %     RB
 %
+%   - 14/04/22
+%               - import multi BLAST-AIC Object features within 1 .txt file
+%     RB
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Construction de l'interface 
@@ -63,17 +67,18 @@ Menu_Fil = uimenu('Label', 'File');
            Menu_NeuroFeedback = uimenu(Menu_Fil, 'Label', 'Import NeuroFeedback');
                                 uimenu(Menu_NeuroFeedback, 'Label', 'Import matlab', 'Callback', {@Import_Mat_Manu});
                                 uimenu(Menu_NeuroFeedback, 'Label', 'Import Vamp', 'Callback', {@Import_Vamp});
-           uimenu(Menu_Fil, 'Label', 'Load BLAST_AIC File', 'Callback', {@Load_Blast_Obj});
-           uimenu(Menu_Fil, 'Label', 'Save BLAST_AIC file', 'Callback', {@Save_Blast_Obj});
-Menu_Dis = uimenu('Label', 'Display');
-           uimenu(Menu_Dis, 'Label', 'Global Resum', 'Callback', {@Plot_Bloc_AIC});
-           uimenu(Menu_Dis, 'Label', 'Output Text', 'Callback', {@Write_file_output});
-Menu_Rap = uimenu('Label', 'Rapport');
-           uimenu(Menu_Rap, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
-Menu_TF = uimenu('Label', 'TF');
-          uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
+           uimenu(Menu_Fil, 'Label', 'Load BLAST_AIC object', 'Callback', {@Load_Blast_Obj});
+           uimenu(Menu_Fil, 'Label', 'Save BLAST_AIC object', 'Callback', {@Save_Blast_Obj});
 Menu_Modify = uimenu('Label', 'Modify');
               uimenu(Menu_Modify, 'Label', 'Blocs Selection', 'Callback', {@Change_bloc_display});
+Menu_Dis = uimenu('Label', 'Display');
+           uimenu(Menu_Dis, 'Label', 'Global Resum', 'Callback', {@Plot_Bloc_AIC});
+Menu_Extract = uimenu('Label', 'Extractions');
+           uimenu(Menu_Extract, 'Label', 'Publish Rapport', 'Callback', {@Rapport});
+           uimenu(Menu_Extract, 'Label', 'Single Output Text', 'Callback', {@Write_file_output_single});
+           uimenu(Menu_Extract, 'Label', 'Multi  Output Text', 'Callback', {@Write_file_output_multi});
+Menu_TF = uimenu('Label', 'Spectral');
+          uimenu(Menu_TF, 'Label', 'Theta/Beta Ratio', 'Callback', {@Launch_RTB});
            
     
            
@@ -719,7 +724,7 @@ coo = get(quel_axis,'Currentpoint');
 out = num2str(coo(1,2));
 title(gca, ['RT = ', out]);
 
-function Write_file_output(hObj,evnt)
+function Write_file_output_single(hObj,evnt)
 
 global GUI
 
@@ -805,6 +810,73 @@ end
 
 
 
+fclose(fid);
+
+function Write_file_output_multi(hObj,evnt)
+% This function creat one .txt file where mutliple Blast_AIC object were merged.
+% We extract some AIC and BLAST features 
+
+% define path of output file
+% output_filename = '/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/datas_raw/output/truc.txt';
+[output_filename, output_patname] = uiputfile('*.txt', 'Pick an OUTPUT file');
+
+% Creat HEADER
+fid = fopen(fullfile(output_patname, output_filename), 'w+');
+fprintf(fid, 'Filename\t');
+fprintf(fid, 'Toto_AIC_Gen_nb\tToto_AIC_Foc_nb\tToto_Seiz_Gen_nb\tToto_Seiz_Foc_nb\tToto_AIC_Other_nb\t');
+
+for xi_bloc = 1 : 4
+    fprintf(fid, 'Bloc%s_AIC_Gen_nb\tBloc%s_AIC_Foc_nb\tBloc%s_Seiz_Gen_nb\tBloc%s_Seiz_Foc_nb\tBloc%s_AIC_Other_nb\t',...
+        num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc));
+    fprintf(fid, 'Bloc%s_Good_pct\tBloc%s_Good_Avg\tBloc%s_Good_Med\tBloc%s_False_pct\tBloc%s_Miss_pct\tBloc%s_PCT40\tBloc%s_PCT3000\t',...
+        num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc), num2str(xi_bloc));
+end, clear xi_bloc
+fprintf(fid, '\n');
+
+
+% Get all *.mat fil to extract
+[liste_input_file, input_filepath] =  uigetfile('*.mat', 'MultiSelect', 'on');
+
+
+for xi_liste = 1 : numel(liste_input_file)
+     
+    % input_filepath = '/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/datas_raw/output/Cognit-AIC_027DR190318_BLAST_Rapport.mat';
+    load(fullfile(input_filepath, liste_input_file{1}))
+    [~, input_filename, ~] = fileparts(liste_input_file{1});
+
+
+    fprintf(fid, '%s\t', input_filename);
+    fprintf(fid, '%s\t%s\t%s\t%s\t%s\t',...
+        num2str(sum(strcmp(BLAST_Object.AIC.label, 'a'))),...
+        num2str(sum(strcmp(BLAST_Object.AIC.label, 'c'))),...
+        num2str(sum(strcmp(BLAST_Object.AIC.label, 'g'))),...
+        num2str(sum(strcmp(BLAST_Object.AIC.label, 'i'))),...
+        num2str(sum(strcmp(BLAST_Object.AIC.label, 'e'))));
+
+
+    for xi_bloc = 1 : length(BLAST_Object.bloc)
+        fprintf(fid, '%s\t%s\t%s\t%s\t%s\t',...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.AIC.aic_general_nb),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.AIC.aic_focal_nb),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.AIC.seiz_general_nb),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.AIC.seiz_focal_nb),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.AIC.other_nb));
+        fprintf(fid, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t',...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.pct_ok),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.avg_only_good),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.med_only_good),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.pct_false),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.pct_miss),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.pct40),...
+            num2str(BLAST_Object.bloc{xi_bloc}.global.Blast.pct3000));
+
+    end, clear xi_bloc
+
+    clear input_filename BLAST_Object
+    fprintf(fid, '\n');
+    
+end, clear xi_liste    
+    
 fclose(fid);
 
 function ClicClac(hObj,evnt)
