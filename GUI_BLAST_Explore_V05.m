@@ -818,7 +818,7 @@ function Write_file_output_multi(hObj,evnt)
 
 % define path of output file
 % output_filename = '/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/datas_raw/output/truc.txt';
-[output_filename, output_patname] = uiputfile('*.txt', 'Pick an OUTPUT file');
+[output_filename, output_patname] = uiputfile('Your_filename.txt', 'Pick an OUTPUT file');
 
 % Creat HEADER
 fid = fopen(fullfile(output_patname, output_filename), 'w+');
@@ -841,8 +841,8 @@ fprintf(fid, '\n');
 for xi_liste = 1 : numel(liste_input_file)
      
     % input_filepath = '/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/datas_raw/output/Cognit-AIC_027DR190318_BLAST_Rapport.mat';
-    load(fullfile(input_filepath, liste_input_file{1}))
-    [~, input_filename, ~] = fileparts(liste_input_file{1});
+    load(fullfile(input_filepath, liste_input_file{xi_liste}))
+    [~, input_filename, ~] = fileparts(liste_input_file{xi_liste});
 
 
     fprintf(fid, '%s\t', input_filename);
