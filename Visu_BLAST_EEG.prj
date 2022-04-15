@@ -1,9 +1,9 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="4116493598" file="/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/GITHUB_Tool_BLAST_EEG-master/Visu_BLAST_EEG.prj" location="/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/GITHUB_Tool_BLAST_EEG-master" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="1350097918" file="/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/GITHUB_Tool_BLAST_EEG-master/Visu_BLAST_EEG.prj" location="/Users/romain/Study/Vania/Analyse_Clinic/Stabilo/GITHUB_Tool_BLAST_EEG-master" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
     <param.appname>Visu_BLAST_EEG</param.appname>
     <param.authnamewatermark>RB</param.authnamewatermark>
-    <param.email />
-    <param.company>CRNL</param.company>
+    <param.email>CRNL</param.email>
+    <param.company />
     <param.icon />
     <param.icons />
     <param.summary />
@@ -17,9 +17,9 @@
       <item>maci64</item>
     </param.platforms>
     <param.output>${PROJECT_ROOT}</param.output>
-    <param.guid>ad11b903-309d-4cfb-99a2-31fb68c12131</param.guid>
+    <param.guid>509e8ca1-5ac1-4e6b-ae80-6ad264e904f1</param.guid>
     <unset>
-      <param.email />
+      <param.company />
       <param.icon />
       <param.icons />
       <param.summary />
