@@ -44,7 +44,7 @@ corr_eog_th    = .4;
 meth_artefact = GUI.RTB.param_artefact.methodo.Value;
 th_abs_CY     = str2num(GUI.RTB.param_artefact.th_abs_CY.String);
 th_abs_OY     = str2num(GUI.RTB.param_artefact.th_abs_OY.String);
-th_std        = str2num(GUI.RTB.param_artefact.th_sd.String);
+%th_std        = str2num(GUI.RTB.param_artefact.th_sd.String);
 th_pct        = str2num(GUI.RTB.param_artefact.pct.String);
 meth_RTB      = GUI.RTB.param_band.String{GUI.RTB.param_band.Value};
 
@@ -243,6 +243,7 @@ if (isempty(data_ica_CY_trial.trial) || isempty(data_ica_OY_trial.trial))
     return
 end 
 
+% Selection des channels d'interet
 cfg         = [];
 cfg.channel = chan_front.label;
 data_front_OY_trial    = ft_selectdata(cfg, data_ica_OY_trial);
@@ -259,10 +260,10 @@ data_occi_CY_trial    = ft_selectdata(cfg, data_ica_CY_trial);
 
 
 % check correction and artefact removal
-display_preproc_V03(win_CY, win_OY,...
-    chan_front, chan_eog,...
-    data_front_CY_trial, data_front_OY_trial,...
-    to_keep_CY, to_keep_OY)
+% display_preproc_V03(win_CY, win_OY,...
+%     chan_front, chan_eog,...
+%     data_front_CY_trial, data_front_OY_trial,...
+%     to_keep_CY, to_keep_OY)
 
 
 %% RTB 
@@ -280,10 +281,14 @@ switch meth_RTB
         beta_band  = [12,25];
         alpha_peak = [];
                 
-    case 'adapt'
+    case 'Adapt Lansbergen11'
         
-        [theta_band beta_band alpha_peak] = Search_band_epoked(data_occi_CY_trial, data_occi_OY_trial)
+        [theta_band beta_band alpha_peak] = Search_band_epoked(data_occi_CY_trial, data_occi_OY_trial, 'Lansbergen11');
+
+    case'Adapt Mensia19'
         
+        [theta_band beta_band alpha_peak] = Search_band_epoked(data_occi_CY_trial, data_occi_OY_trial, 'Mensia19');
+
 end % switch
 
 GUI.RTB.output.theta_band = theta_band;
@@ -294,17 +299,40 @@ GUI.RTB.output.alpha_peak = alpha_peak;
 
 % Comput RTB
 [GUI.RTB.output.ff.OY,...
- GUI.RTB.output.theta.OY,...
- GUI.RTB.output.beta.OY,...
- GUI.RTB.output.RTB.OY] = Ratio_by_trial(data_front_OY,...
-                                         round(theta_band),...
-                                         round(beta_band));
+ good_one_OY,...
+ GUI.RTB.output.theta.mean.OY,...
+ GUI.RTB.output.beta.mean.OY,...
+ GUI.RTB.output.RTB.mean.OY,...
+ GUI.RTB.output.theta.trial.OY,...
+ GUI.RTB.output.beta.trial.OY,...
+ GUI.RTB.output.RTB.trial.OY] = Ratio_by_trial_corrected_FOOOF(data_front_OY,...
+                                                   round(theta_band),...
+                                                   round(beta_band));
 [GUI.RTB.output.ff.CY,...
- GUI.RTB.output.theta.CY,...
- GUI.RTB.output.beta.CY,...
- GUI.RTB.output.RTB.CY] = Ratio_by_trial(data_front_CY,...
-                                         round(theta_band),...
-                                         round(beta_band));
+ good_one_CY,...
+ GUI.RTB.output.theta.mean.CY,...
+ GUI.RTB.output.beta.mean.CY,...
+ GUI.RTB.output.RTB.mean.CY,...
+ GUI.RTB.output.theta.trial.CY,...
+ GUI.RTB.output.beta.trial.CY,...
+ GUI.RTB.output.RTB.trial.CY] = Ratio_by_trial_corrected_FOOOF(data_front_CY,...
+                                                   round(theta_band),...
+                                                   round(beta_band));
+
+                                               
+cfg = {};
+cfg.trials = good_one_OY;
+data_front_OY_trial = ft_selectdata(cfg, data_front_OY_trial);
+cfg.trials = good_one_CY;
+data_front_CY_trial = ft_selectdata(cfg, data_front_CY_trial);
+clear cfg
+                      
+% check correction and artefact removal
+display_preproc_V03(win_CY, win_OY,...
+    chan_front, chan_eog,...
+    data_front_CY_trial, data_front_OY_trial,...
+    to_keep_CY, to_keep_OY)
+
 
 
 Display_output()
@@ -748,6 +776,13 @@ RTB = [];
 
 function [ff, theta, beta, RTB] = Ratio_by_trial(data, theta_band, beta_band)
 
+% This function 
+% - compute FFT
+% - extract RTB
+% By trial
+%
+% data : ft structure (signal)
+
 ff    = nan(data.fsample, numel(data.trial));
 theta = nan(1, numel(data.trial));
 beta  = nan(1, numel(data.trial));
@@ -762,6 +797,204 @@ for xi_trial = 1 : numel(data.trial)
         
 end, clear xi_trial
         
+function [ff, theta, beta, RTB] = Ratio_by_trial_corrected_1f(data, theta_band, beta_band)
+% This function compute de RTB based on fft by trial
+% Here we don't use the log transformation 
+% We fit an spectral 1/f curve to remove the frequency unbalance
+
+
+ff    = nan(data.fsample, numel(data.trial));
+theta = nan(1, numel(data.trial));
+beta  = nan(1, numel(data.trial));
+RTB   = nan(1, numel(data.trial));
+
+% initialisation for correction 1/f
+freq_to_fit = [2:4 100:250];    
+freq_all    = 1:size(ff,1);
+    
+for xi_trial = 1 : numel(data.trial)
+    
+    % spectre
+    ff(:, xi_trial) = abs(fft(data.trial{xi_trial}, data.fsample));
+    
+    % Correction
+    % WARNING: correction is remove above 512 hz
+    warning off
+    fout = fit(freq_to_fit', ff(freq_to_fit, xi_trial), 'a + b/x');
+    warning on
+    ff_fit = fout.a + fout.b./freq_all;
+    ff(:, xi_trial) = ff(:, xi_trial) - ff_fit';
+    clear fout ff_fit 
+    
+    % RTB
+    theta(xi_trial) = sum(ff(theta_band(1):theta_band(2), xi_trial));
+    beta(xi_trial)  = sum(ff(beta_band(1):beta_band(1), xi_trial));
+    RTB(xi_trial)   = theta(xi_trial)/beta(xi_trial);
+        
+end, clear xi_trial
+
+function [spc_trial_correct, good_one,...
+          theta_m, beta_m, RTB_m,...
+          theta_t, beta_t, RTB_t] = Ratio_by_trial_corrected_FOOOF(data, theta_band, beta_band)
+% This function use FOOOF method to remove 1/f trend and gaussian mixture
+% soft : https://github.com/fooof-tools
+% ref : https://www.nature.com/articles/s41593-020-00744-x
+%
+% Here we use the implemented fieldtrip method 
+% https://www.fieldtriptoolbox.org/example/fooof/
+%
+% Input:
+%       data       : FT structure
+%       theta_band : vector, [min max]Hz
+%       beta_band  : vector, [min max]Hz
+%
+% Output:
+%       spc_trial_correct      : FT structure, powspectrum trial by trial, 
+%                                        FOOF corrected
+%       good_one               : vector, trial to keep, id
+%       theta_m, beta_m, RTB_m : scalar, theta, beta and RTB 
+%                                        compute on the mean
+%       theta_t, beta_t, RTB_t : scalar, theta, beta and RTB 
+%                                        compute trial by trial
+
+
+global GUI
+
+% There is an error with new fieldtrip function
+% we have to modify data structure
+truc = data.label{1};
+data.label = {};
+data.label{1} = truc;
+clear truc
+
+
+% Compute mean SPECTRUM raw data
+cfg               = [];
+cfg.foilim        = [1 40];
+cfg.tapsmofrq     = 1;
+cfg.method        = 'mtmfft';
+cfg.output        = 'pow';
+spc_mean = ft_freqanalysis(cfg, data);
+
+% Compute SPECTRUM trial by trial
+cfg.keeptrials    = 'yes'; 
+spc_trial = ft_freqanalysis(cfg, data);
+clear cfg
+
+% figure, plot(spc_trial.freq, squeeze(spc_trial.powspctrm))
+% hold on, plot(spc_mean.freq, spc_mean.powspctrm, 'k', 'LineWidth', 4)
+
+% find trials out of spectral 2sd
+m_trial  = nanmean(squeeze(spc_trial.powspctrm), 1);
+sd_trial = nanstd(squeeze(spc_trial.powspctrm));
+% Define how many outliers samples hz need to reject
+nb_sample_hz = (nearest(spc_trial.freq, 2) - nearest(spc_trial.freq, 1)) * 3;    % reject 3HZ outliers
+good_one = find(sum((squeeze(spc_trial.powspctrm) - repmat(m_trial+ (2*sd_trial), size(squeeze(spc_trial.powspctrm),1), 1)) > 0, 2) < nb_sample_hz);
+clear nb_sample_hz
+% figure, imagesc((squeeze(spc_trial.powspctrm) - repmat(m_trial+ (2*sd_trial), size(squeeze(spc_trial.powspctrm),1), 1)) > 0)
+% figure, plot(spc_trial.freq, squeeze(spc_trial.powspctrm(good_one,:,:)))
+% hold on, plot(spc_mean.freq, spc_mean.powspctrm, 'k', 'LineWidth', 4)
+
+
+
+% Compute mean SPECTRUM on selected data
+cfg               = [];
+cfg.foilim        = [1 40];
+cfg.tapsmofrq     = 1;
+cfg.method        = 'mtmfft';
+cfg.output        = 'pow';
+cfg.trials         = good_one;
+% figure, plot(spc_mean.freq, spc_mean.powspctrm, 'k', 'LineWidth', 2)
+spc_mean = ft_freqanalysis(cfg, data);
+% hold on, plot(spc_mean.freq, spc_mean.powspctrm, 'r', 'LineWidth', 2)
+
+% Compute SPECTRUM trial by trial
+cfg.keeptrials    = 'yes'; 
+cfg.trials         = good_one;
+spc_trial = ft_freqanalysis(cfg, data);
+
+%%%%%%%%%% FOOOF %%%%%%%%%%%%%%%%%%%%%
+fprintf('\nFOOF spectral correction:\t')
+switch GUI.RTB.spectral_correction.String{GUI.RTB.spectral_correction.Value}
+    case '1/f'
+        % compute 1/f trend
+        fprintf('1/f\n\n')
+        cfg.output        = 'fooof_aperiodic';     
+        cfg.keeptrials    = 'no'; 
+        spc_component = ft_freqanalysis(cfg, data);
+        % figure, plot(trend_1f.freq, trend_1f.powspctrm, 'k', 'LineWidth', 2)
+        
+        % Correct the mean 
+        cfg               = [];
+        cfg.parameter     = 'powspctrm';
+        cfg.operation     = 'x2-x1';
+        spc_mean_correct  = ft_math(cfg, spc_component, spc_mean);
+        clear cfg
+
+        % Correct the trial by trial spectrum
+        spc_trial_correct = spc_trial;
+        spc_trial_correct.powspctrm = squeeze(spc_trial.powspctrm) - repmat(spc_component.powspctrm, size(spc_trial.powspctrm,1), 1);
+        % figure, plot(spc_trial.freq, squeeze(spc_trial.powspctrm))
+        % figure, plot(spc_trial_correct.freq, spc_trial_correct.powspctrm)
+        clear spc_component
+
+        
+    case '1/f + mixt gauss'
+        % estimation of 1/f trend and mixture of gaussians
+        fprintf('1/f + Gaussian Mixture\n\n')
+        cfg.output        = 'fooof';
+        cfg.keeptrials    = 'no'; 
+        spc_component = ft_freqanalysis(cfg, data);     
+        clear cfg
+        % figure, plot(spc_all_component.freq, spc_all_component.powspctrm, 'k', 'LineWidth', 2)
+        
+        % Correct the mean 
+        cfg               = [];
+        cfg.parameter     = 'powspctrm';
+        cfg.operation     = 'x2-x1';
+        spc_mean_correct  = ft_math(cfg, spc_component, spc_mean);
+        clear cfg
+
+        % Correct the trial by trial spectrum
+        spc_trial_correct = spc_trial;
+        spc_trial_correct.powspctrm = squeeze(spc_trial.powspctrm) - repmat(spc_component.powspctrm, size(spc_trial.powspctrm,1), 1);
+        % figure, plot(spc_trial.freq, squeeze(spc_trial.powspctrm))
+        % figure, plot(spc_trial_correct.freq, spc_trial_correct.powspctrm)
+        clear spc_component
+        
+    case 'None'
+        % estimation of 1/f trend and mixture of gaussians
+        fprintf('None\n\n')
+        spc_mean_correct  = spc_mean;
+        spc_trial_correct = spc_trial;
+        
+end
+
+
+
+% % Extract RTB mean
+[theta_m, beta_m, RTB_m] = Compute_RTB(spc_mean_correct.powspctrm, spc_mean_correct.freq, theta_band, beta_band);
+[theta_t, beta_t, RTB_t] = Compute_RTB(spc_trial_correct.powspctrm, spc_trial_correct.freq, theta_band, beta_band);
+
+
+
+function [theta, beta, RTB] = Compute_RTB(spc, freq, theta_band, beta_band)
+% This function extract RTB
+% 
+% spc   : vector, spectral power
+% freq  : vector, spectral frequency  
+% theta : vector, [min max]
+% beta  : vector, [min max]
+
+theta = mean(spc(:,...
+                 nearest(freq, theta_band(1)):nearest(freq, theta_band(2))),...
+             2);
+beta  = mean(spc(:,...
+                 nearest(freq, beta_band(1)):nearest(freq, beta_band(2))),...
+             2);
+RTB   = theta./beta;
+
+
 function [theta_band beta_band alpha_peak] = Search_band(data_occi_CY, data_occi_OY)
  
 % Search alpha peak between 5 and 15 Hz
@@ -791,7 +1024,7 @@ plot(x,fft_diff(x), 'r')
 legend({'Eyes Close', 'Eyes Open', 'Difference'})
 xlabel('Hz')
       
-function [theta_band beta_band alpha_peak] = Search_band_epoked(data_occi_CY, data_occi_OY)
+function [theta_band beta_band alpha_peak] = Search_band_epoked(data_occi_CY, data_occi_OY, method)
  
 % Search alpha peak between 5 and 15 Hz
 % bands were de?ned using IAF as anchor point
@@ -821,8 +1054,17 @@ fft_OY = mean(fft_OY,1);
 fft_diff = fft_CY - fft_OY;
 
 alpha_peak = 4 + find(fft_diff(5:15) == max(fft_diff(5:15)));
-theta_band = [0.4*alpha_peak 0.8*alpha_peak];
-beta_band = [1.2*alpha_peak 25];
+switch method
+    case 'Lansbergen11'
+        % according to Lansbergen et al 2011
+        theta_band = [0.4*alpha_peak 0.8*alpha_peak];
+        beta_band = [1.2*alpha_peak 25];
+    case 'Mensia19'
+        % according to Mensia 2019
+        theta_band = [alpha_peak-5 alpha_peak-1];
+        beta_band = [alpha_peak+3 alpha_peak+5];
+        
+end
 
 x = [1:25];
 figure('Position', [100,100, 500 500],  'MenuBar', 'no', 'Color', GUI.Colors(1,:),...
@@ -1211,6 +1453,7 @@ else
 end
 clear xi_chan
 
+% plot trial keeped
 for xi_trial = 1 : numel(data_front_CY_clean.trial)
     for xi_chan = 1 : size(data_front_CY_clean.trial{xi_trial},1)
         subplot(2,1,1)
@@ -1231,8 +1474,8 @@ function Display_output()
 
 global GUI
 
-RTB_OY = GUI.RTB.output.RTB.OY;
-RTB_CY = GUI.RTB.output.RTB.CY;
+RTB_OY = GUI.RTB.output.RTB.trial.OY;
+RTB_CY = GUI.RTB.output.RTB.trial.CY;
 
 mean_cum_CY = [];
 for xi_trial = 2 : length(RTB_CY)
@@ -1244,19 +1487,22 @@ for xi_trial = 2 : length(RTB_OY)
 end
 
 % Display
+max_RTB = max([max(RTB_CY), max(RTB_OY)]);
+min_RTB = min([max(RTB_CY), min(RTB_OY)]);
+
 figure('Position', [100,100, 800 600],  'MenuBar', 'no', 'Color', GUI.Colors(1,:),...
        'Tag', 'RTB_time'),
-subplot(2,2,1), plot(GUI.RTB.output.RTB.OY, 'b')
+subplot(2,2,1), plot(RTB_OY, 'b')
 hold on, fill([1, length(RTB_OY), length(RTB_OY), 1],...
                [nanmedian(RTB_OY)+nanstd(RTB_OY), nanmedian(RTB_OY)+nanstd(RTB_OY), nanmedian(RTB_OY)-nanstd(RTB_OY), nanmedian(RTB_OY)-nanstd(RTB_OY)],...
             'y', 'FaceAlpha', 0.2) 
         plot([1 length(RTB_OY)],...
               [nanmedian(RTB_OY) nanmedian(RTB_OY)], 'k')
-          text(3, 0.1+max([RTB_CY, RTB_OY]), ['Ratio Theta/Beta: ', num2str(nanmedian(RTB_OY)), ' (-/+ ', num2str(nanstd(RTB_OY)), ')'],...
+          text(3, 0.1+max_RTB, ['Ratio Theta/Beta: ', num2str(nanmedian(RTB_OY)), ' (-/+ ', num2str(nanstd(RTB_OY)), ')'],...
                'FontSize', 12)
            title('RTB - Yeux Ouverts', 'FontSize', 15, 'Color', [.8 .8 .8])
            xlabel('time (window)')
-           ylim([min([RTB_CY, RTB_OY]), .3+max([RTB_CY, RTB_OY])])
+           ylim([min_RTB, 1.1*max_RTB])
            xlim([0 length(RTB_OY)])
            
 subplot(2,2,2), plot(RTB_CY, 'g')
@@ -1265,12 +1511,13 @@ hold on, fill([1, length(RTB_CY), length(RTB_CY), 1],...
             'y', 'FaceAlpha', 0.2) 
         plot([1 length(RTB_CY)],...
               [nanmedian(RTB_CY) nanmedian(RTB_CY)], 'k')
-          text(3, 0.1+max([RTB_CY, RTB_OY]), ['Ratio Theta/Beta: ', num2str(nanmedian(RTB_CY)), ' (-/+ ', num2str(nanstd(RTB_CY)), ')'],...
+          text(3, 0.1+max_RTB, ['Ratio Theta/Beta: ', num2str(nanmedian(RTB_CY)), ' (-/+ ', num2str(nanstd(RTB_CY)), ')'],...
                'FontSize', 12)
            title('RTB - Yeux Fermés', 'FontSize', 15, 'Color', [.8 .8 .8])
            xlabel('time (window)')
-           ylim([min([RTB_CY, RTB_OY]), .3+max([RTB_CY, RTB_OY])])
+           ylim([min_RTB, 1.1*max_RTB])
            xlim([0 length(RTB_CY)])
+clear max_RTB min_RTB
 
 subplot(2,2,3), plot(mean_cum_OY, 'k')
 hold on
@@ -1314,10 +1561,10 @@ fprintf('\tbeta  : [%s %s] Hz\n ', num2str(GUI.RTB.output.beta_band(1)),...
                                    num2str(GUI.RTB.output.beta_band(2)))
 
 fprintf('\nRatio theta/beta median (deviation standard)\n')
-fprintf('\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.OY)),...
-                                           num2str(std(GUI.RTB.output.RTB.OY)))
-fprintf('\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.CY)),...
-                                           num2str(std(GUI.RTB.output.RTB.CY)))
+fprintf('\tYeux ouverts : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.trial.OY)),...
+                                           num2str(std(GUI.RTB.output.RTB.trial.OY)))
+fprintf('\tYeux fermes  : %s (+/- %s)\n ', num2str(median(GUI.RTB.output.RTB.trial.CY)),...
+                                           num2str(std(GUI.RTB.output.RTB.trial.CY)))
                                   
 function Save_output()
 
