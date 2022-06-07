@@ -41,14 +41,6 @@ GUI.RTB.param_signal.win_ov = str2num(get(GUI.RTB.param_artefact.RTB_win_overlay
 % correlation to detecte ICA components
 corr_eog_th    = .4;
 
-meth_artefact = GUI.RTB.param_artefact.methodo.Value;
-th_abs_CY     = str2num(GUI.RTB.param_artefact.th_abs_CY.String);
-th_abs_OY     = str2num(GUI.RTB.param_artefact.th_abs_OY.String);
-%th_std        = str2num(GUI.RTB.param_artefact.th_sd.String);
-th_pct        = str2num(GUI.RTB.param_artefact.pct.String);
-meth_RTB      = GUI.RTB.param_band.String{GUI.RTB.param_band.Value};
-
-
 
 % channels of interest
 chan_front.label = get(GUI.RTB.param_artefact.chan_front, 'String');
@@ -57,12 +49,15 @@ chan_eog.label   = {'EO+', 'EOGD', 'EOGG'};
 %chan_ica.label   = GUI.RTB.channel_all;
 chan_ica.label   = {'Fp1', 'Fp2', 'FC1', 'FC2', 'F7', 'F3', 'F4', 'F8', 'Fz', 'C3', 'Cz', 'C4', 'P3', 'P4', 'Pz', 'O1', 'O2', 'EO+'};
        
+
 GUI.RTB.output.pct_CY = 1;
 GUI.RTB.output.pct_OY = 1;
 GUI.RTB.output.ICA_CY = [];
 GUI.RTB.output.ICA_OY = [];
         
-        
+
+
+%% Datas Importation         
 switch GUI.Source
     
     case 'TRC_Blast'
@@ -127,37 +122,31 @@ switch GUI.Source
 
 end
 
+
+
 %% Preprocesing
 
-% Threshold rejection
-to_keep_CY = [];
-to_keep_OY = [];
-
-
-% to compute the purcentage of signal rejected later
+% Used later to compute the purcentage of signal rejected later
 length_trial_OY = numel(data_ica_OY_trial.trial);
 length_trial_CY = numel(data_ica_CY_trial.trial);
 
 
-switch meth_artefact
+% Threshold definition
+switch GUI.RTB.param_artefact.methodo.String{GUI.RTB.param_artefact.methodo.Value}
     % define threshold according to methodo selected
     
-    case {1, 6}
+    case {'Threshold (microVolt)', 'ICA + Thesh'}
         % remove samples upper than threshold
-        th_abs_CY = th_abs_CY;
-        th_abs_OY = th_abs_OY;
-        fprintf('\nRemove artefact upper than %s microVolt\n', num2str(th_abs_CY))
+        GUI.RTB.output.threshold_CY = str2num(GUI.RTB.param_artefact.th_abs_CY.String);
+        GUI.RTB.output.threshold_OY = str2num(GUI.RTB.param_artefact.th_abs_CY.String);
+        fprintf('\nRemove artefact upper than \n\t\t\t\tClosed eyes: %s microVolt\n\t\t\t\tOpened eyes: %s microVolt\n',...
+                                        GUI.RTB.param_artefact.th_abs_CY.String,...
+                                        GUI.RTB.param_artefact.th_abs_OY.String)
         
         
-    case 2
-        % remove sample upper than Standard Deviation
-        th_abs_CY = Sd_to_Th(data_ica_CY_continue_raw, th_std);
-        th_abs_OY = Sd_to_Th(data_ica_OY_continue_raw, th_std);
-        
-        
-    case 3
+    case 'Threshold (%)'
         % remove sample to keep a purcentage of signal
-        pct_reject_max = th_pct;
+        pct_reject_max = str2num(GUI.RTB.param_artefact.pct.String);
         fprintf('\nRemove artefact to keep %s%% of signal\n', num2str(pct_reject_max*100))
         
         flag_CY = 1;
@@ -169,69 +158,77 @@ switch meth_artefact
             to_keep_OY = Reject_seuil_absolu(data_ica_OY_trial, data_ica_OY_continue_raw, xi_th);
             
             if length(to_keep_CY.trial)/numel(data_ica_CY_trial.trial) < 1-pct_reject_max & flag_CY
-                th_abs_CY = xi_th;
+                GUI.RTB.output.threshold_CY = xi_th;
                 flag_CY = 0;
             end
             if length(to_keep_OY.trial)/numel(data_ica_OY_trial.trial) < 1-pct_reject_max & flag_OY
-                th_abs_OY = xi_th;
+                GUI.RTB.output.threshold_OY = xi_th;
                 flag_OY = 0;
             end
             
-        end, clear xi_th
+        end, clear xi_th flag_OY flag_CY pct_reject_max
+        fprintf('\nRemove artefact upper than \n\t\t\t\tClosed eyes: %s microVolt\n\t\t\t\tOpened eyes: %s microVolt\n',...
+                                        GUI.RTB.param_artefact.th_abs_CY.String,...
+                                        GUI.RTB.param_artefact.th_abs_OY.String)
         
-    case 5
+    case 'ICA'
         
-        th_abs_CY = 10000000;
-        th_abs_OY = th_abs_CY;
+        GUI.RTB.output.threshold_CY = 10000000;
+        GUI.RTB.output.threshold_OY = 10000000;
 end
 
-GUI.RTB.output.threshold_CY = th_abs_CY;
-GUI.RTB.output.threshold_OY = th_abs_OY;
+
+% Save threshold
+GUI.RTB.output.threshold_CY = str2num(GUI.RTB.param_artefact.th_abs_CY.String);
+GUI.RTB.output.threshold_OY = str2num(GUI.RTB.param_artefact.th_abs_OY.String);
+
 
 % find bad trial and bad samples according to threshold
-to_keep_CY = Reject_seuil_absolu(data_ica_CY_trial, data_ica_CY_continue_raw, th_abs_CY);
-to_keep_OY = Reject_seuil_absolu(data_ica_OY_trial, data_ica_OY_continue_raw, th_abs_OY);
+to_keep_CY = Reject_seuil_absolu(data_ica_CY_trial, data_ica_CY_continue_raw, GUI.RTB.output.threshold_CY);
+to_keep_OY = Reject_seuil_absolu(data_ica_OY_trial, data_ica_OY_continue_raw, GUI.RTB.output.threshold_OY);
+clear th_abs_CY th_abs_OY
 
-% remove bad trials
-data_ica_CY_trial = Remove_trial(data_ica_CY_trial, to_keep_CY.trial);
-data_ica_OY_trial = Remove_trial(data_ica_OY_trial, to_keep_OY.trial);
-
-% compute the purcentage of signal rejected
-GUI.RTB.output.pct_CY = numel(data_ica_CY_trial.trial)/length_trial_CY;
-GUI.RTB.output.pct_OY = numel(data_ica_OY_trial.trial)/length_trial_OY;
-
+% remove bads trials according to amplitude threshold 
+cfg = {};
+cfg.trials = to_keep_OY.trial;
+data_ica_OY_trial = ft_selectdata(cfg, data_ica_OY_trial);
+cfg.trials = to_keep_CY.trial;
+data_ica_CY_trial = ft_selectdata(cfg, data_ica_CY_trial);
+clear cfg
 
 
 % Remove bad sample along continue datas
+% (used only for rejection display)
 no_keep = find(ismember(data_ica_OY_continue_raw.time{1}, to_keep_OY.time) == 0);
 data_ica_OY_continue_raw.trial{1}(:,no_keep)  = nan;
 data_ica_OY_continue_filt.trial{1}(:,no_keep) = nan;
-data_eog_OY_continue.trial{1}(:,no_keep)      = nan; clear no_keep
+data_eog_OY_continue.trial{1}(:,no_keep)      = nan; clear no_keep to_keep_OY
 
 no_keep = find(ismember(data_ica_CY_continue_raw.time{1}, to_keep_CY.time) == 0);
 data_ica_CY_continue_raw.trial{1}(:,no_keep)  = nan;
 data_ica_CY_continue_filt.trial{1}(:,no_keep) = nan;
-data_eog_CY_continue.trial{1}(:,no_keep)      = nan; clear no_keep
+data_eog_CY_continue.trial{1}(:,no_keep)      = nan; clear no_keep to_keep_CY
 
 
 
     
 
 % ICA correction
-if meth_artefact > 4
+if strcmp(GUI.RTB.param_artefact.methodo.String{GUI.RTB.param_artefact.methodo.Value}, 'ICA') || strcmp(GUI.RTB.param_artefact.methodo.String{GUI.RTB.param_artefact.methodo.Value}, 'ICA + Thesh')
         % ICA
+        fprintf('ICA correction\n\n')
         % Open eyes
         data_ica_OY_trial = artefact_eog(data_eog_OY_continue,...
-                                            data_ica_OY_continue_filt,...
-                                            data_ica_OY_trial,...
-                                            corr_eog_th, 'ICA Open Eyes');
+                                         data_ica_OY_continue_filt,...
+                                         data_ica_OY_trial,...
+                                         corr_eog_th, 'ICA Open Eyes');
         
         
         % closed eyes
          data_ica_CY_trial = artefact_eog(data_eog_CY_continue,...
-                                            data_ica_CY_continue_filt,...
-                                            data_ica_CY_trial,...
-                                            corr_eog_th, 'ICA Close Eyes');        
+                                          data_ica_CY_continue_filt,...
+                                          data_ica_CY_trial,...
+                                          corr_eog_th, 'ICA Close Eyes');        
                            
 end % if meth_artefact
 
@@ -259,11 +256,6 @@ cfg.channel = chan_occi.label;
 data_occi_CY_trial    = ft_selectdata(cfg, data_ica_CY_trial);
 
 
-% check correction and artefact removal
-% display_preproc_V03(win_CY, win_OY,...
-%     chan_front, chan_eog,...
-%     data_front_CY_trial, data_front_OY_trial,...
-%     to_keep_CY, to_keep_OY)
 
 
 %% RTB 
@@ -273,12 +265,12 @@ data_front_OY = Dimension_reduc(data_front_OY_trial);
 
 
 
-switch meth_RTB
+switch GUI.RTB.param_band.String{GUI.RTB.param_band.Value}
 % frequency band definition
         
     case 'fix'
         theta_band = [4;8];
-        beta_band  = [12,25];
+        beta_band  = [13,21];
         alpha_peak = [];
                 
     case 'Adapt Lansbergen11'
@@ -319,19 +311,24 @@ GUI.RTB.output.alpha_peak = alpha_peak;
                                                    round(theta_band),...
                                                    round(beta_band));
 
-                                               
+                              
+% remove bads trials according to spectral cleaning 
 cfg = {};
 cfg.trials = good_one_OY;
 data_front_OY_trial = ft_selectdata(cfg, data_front_OY_trial);
 cfg.trials = good_one_CY;
 data_front_CY_trial = ft_selectdata(cfg, data_front_CY_trial);
 clear cfg
+
+% compute the purcentage of signal rejected
+GUI.RTB.output.pct_CY = numel(data_front_CY_trial.trial)/length_trial_CY;
+GUI.RTB.output.pct_OY = numel(data_front_OY_trial.trial)/length_trial_OY;
+
                       
 % check correction and artefact removal
 display_preproc_V03(win_CY, win_OY,...
     chan_front, chan_eog,...
-    data_front_CY_trial, data_front_OY_trial,...
-    to_keep_CY, to_keep_OY)
+    data_front_CY_trial, data_front_OY_trial)
 
 
 
@@ -724,6 +721,7 @@ to_keep.starts = [];
 
 for xi_trial = 1 : numel(data_trial.trial)
     
+      % Signal centering
       data_trial.trial{xi_trial} = data_trial.trial{xi_trial} - mean(data_trial.trial{xi_trial},2);
       
     if max(abs(data_trial.trial{xi_trial}(:))) < th
@@ -1062,7 +1060,7 @@ switch method
     case 'Mensia19'
         % according to Mensia 2019
         theta_band = [alpha_peak-5 alpha_peak-1];
-        beta_band = [alpha_peak+3 alpha_peak+5];
+        beta_band = [alpha_peak+3 alpha_peak+12];
         
 end
 
@@ -1367,7 +1365,7 @@ for xi_chan = 1 : size(data_front_CY.trial{1},1)
         plot(data_front_OY_clean.time{1}, data_front_OY_clean.trial{1}(xi_chan, :) + ((xi_chan - 1)*200), 'k')
 end
    
-function display_preproc_V03(win_CY, win_OY, chan_front, chan_eog, data_front_CY_clean, data_front_OY_clean, to_keep_OY, to_keep_CY)
+function display_preproc_V03(win_CY, win_OY, chan_front, chan_eog, data_front_CY_clean, data_front_OY_clean)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This fonction plot the channels used for RTB
@@ -1522,12 +1520,14 @@ clear max_RTB min_RTB
 subplot(2,2,3), plot(mean_cum_OY, 'k')
 hold on
 plot([1 length(mean_cum_OY)], [mean_cum_OY(end) mean_cum_OY(end)], ':k')
+ylim([-5, 20])
 title('Mediane cumulee - Yeux Ouverts', 'FontSize', 15, 'Color', [.8 .8 .8])
 xlim([0 length(RTB_OY)])
 
 subplot(2,2,4), plot(mean_cum_CY, 'k')
 hold on
 plot([1 length(mean_cum_CY)], [mean_cum_CY(end) mean_cum_CY(end)], ':k')
+ylim([-5, 20])
 title('Mediane cumulee - Yeux Fermes','FontSize', 15, 'Color', [.8 .8 .8])
 xlim([0 length(RTB_CY)])
 
