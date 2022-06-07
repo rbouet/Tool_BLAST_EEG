@@ -40,3 +40,6 @@ Add some EOG labels.
 Selection of BLAST blocs    
 ### 14/04/22    
 Merge several BLAST-AIC features within one *.txt file   
+### 07/06/22    
+FOOF spectral correction for RTB    
+Artefact rejection based on spectrum    
