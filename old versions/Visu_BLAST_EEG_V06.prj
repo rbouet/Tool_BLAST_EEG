@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="1663299861" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="3740241822" file="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT/Visu_BLAST_EEG.prj" location="/Volumes/Backup_DD/From_BAIE/Vania/Analyse_Clinic/Stabilo/GIT" name="Visu_BLAST_EEG" target="target.mlapps" target-name="Package App">
     <param.appname>Visu_BLAST_EEG</param.appname>
     <param.authnamewatermark>RB</param.authnamewatermark>
     <param.email />
@@ -13,9 +13,11 @@
     <param.products.name />
     <param.products.id />
     <param.products.version />
-    <param.platforms />
+    <param.platforms>
+      <item>maci64</item>
+    </param.platforms>
     <param.output>${PROJECT_ROOT}</param.output>
-    <param.guid>3b784cb8-8b56-46c9-ab6e-b269f18e3e4d</param.guid>
+    <param.guid>2d1842b7-54a7-45eb-b846-0567d3ada983</param.guid>
     <unset>
       <param.email />
       <param.icon />
@@ -27,7 +29,6 @@
       <param.products.name />
       <param.products.id />
       <param.products.version />
-      <param.platforms />
       <param.output />
     </unset>
     <fileset.main>
