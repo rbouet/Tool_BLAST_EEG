@@ -44,3 +44,6 @@ Merge several BLAST-AIC features within one *.txt file
 FOOF spectral correction for RTB    
 Artefact rejection based on spectrum    
 Mensia's definition of frenquency bands adapted    
+### 28/06/22     
+RTB comput on corrected spectrum     
+Huge MAJ on RTB algorythme     
